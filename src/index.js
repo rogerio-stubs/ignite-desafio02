@@ -10,19 +10,52 @@ app.use(cors());
 const users = [];
 
 function checksExistsUserAccount(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers;
+
+  const userFound = users.find(user => user.username == username);
+
+  if(!userFound) return response.status(404).json({error: `Username not found`});
+
+  request.user = userFound;
+  return next();
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
-  // Complete aqui
+  const { user } = request;
+
+  if((user.pro === false && user.todos.length < 10) || (user.pro === true)) 
+    return next();
+  
+  return response.status(403).json({message: `Limite de Todos para o plano free atingido!`});
+
 }
 
 function checksTodoExists(request, response, next) {
-  // Complete aqui
+  const {username } = request.headers;
+  const { id } = request.params;
+
+  if(!validate(id)) return response.status(400).json({error: `ID incorrect`})
+
+  const userFound = users.find(user => user.username == username);
+  if(!userFound) return response.status(404).json({error: `Username not found`});
+
+  const todoFound = userFound.todos.find(todoID => todoID.id == id);
+  if(!todoFound) return response.status(404).json({error: `ID not found!`});
+
+  request.todo = todoFound;
+  request.user = userFound;
+  return next();
+
 }
 
 function findUserById(request, response, next) {
-  // Complete aqui
+  const { id } = request.params;
+
+  const userFound = users.find(user => user.id == id);
+  if(!userFound) return response.status(404).json({error: `User not found`});
+
+  request.user = userFound;
+  return next();
 }
 
 app.post('/users', (request, response) => {
